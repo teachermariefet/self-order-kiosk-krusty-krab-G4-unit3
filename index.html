@@ -1,1 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marie's Kiosk</title>
+    <style>
+        :root {
+            --wendys-red: #ED1C24;
+            --wendys-blue: #00AEEF;
+            --wendys-yellow: #FFCE00;
+            --bg-cream: #F9EBC7;
+            --dark-ink: #2D3436;
+            --white: #FFFFFF;
+        }
 
+        /* Base font for everything */
+        * {
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            color: var(--dark-ink);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- LANDING PAGE WITH CUSTOM BACKGROUND --- */
+        #landing-page {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: url('landingpage.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        /* Spacer to push buttons under the "ORDER HERE" text in the image */
+        .spacer {
+            height: 180px; 
+        }
+
+        .options-grid { 
+            display: flex; 
+            gap: 30px; 
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            background: var(--white);
+            border: 6px solid var(--dark-ink);
+            border-radius: 30px;
+            padding: 15px 40px;
+            cursor: pointer;
+            box-shadow: 8px 8px 0px var(--dark-ink);
+            transition: 0.1s;
+        }
+
+        .option-btn:hover {
+            background-color: var(--wendys-yellow);
+        }
+
+        .option-btn:active { 
+            transform: translate(6px, 6px); 
+            box-shadow: 0px 0px 0px var(--dark-ink); 
+        }
+
+        .btn-en { font-size: 2.2rem; font-weight: bold; display: block; }
+        .btn-zh { font-size: 1.1rem; color: #555; }
+
+        /* --- ORDER PAGE STYLES --- */
+        #order-page {
+            display: none; 
+            width: 100%;
+            height: 100%;
+            background-color: #CBF3F0;
+        }
+
+        main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+
+        .kiosk-header {
+            background: white;
+            padding: 10px 50px;
+            border: 5px solid var(--dark-ink);
+            border-radius: 50px;
+            box-shadow: 6px 6px 0px var(--dark-ink);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .menu-card {
+            background: white;
+            border: 4px solid var(--dark-ink);
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 5px 5px 0px var(--dark-ink);
+            cursor: pointer;
+        }
+
+        .menu-card img { width: 100%; height: 90px; object-fit: contain; }
+        .menu-card h3 { margin: 5px 0; font-size: 1.2rem; text-transform: lowercase; }
+        .price-tag { background: var(--wendys-yellow); border: 2px solid var(--dark-ink); border-radius: 10px; font-weight: bold; }
+
+        .sidebar {
+            width: 380px;
+            background: var(--bg-cream);
+            border-left: 6px solid var(--dark-ink);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .slip-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: lowercase;
+        }
+
+        .total-box {
+            border-top: 4px dashed var(--dark-ink);
+            margin-top: auto;
+            padding-top: 10px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #payment-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .pay-btn {
+            width: 320px;
+            background: white;
+            border: 5px solid var(--dark-ink);
+            padding: 20px;
+            margin: 10px;
+            border-radius: 20px;
+            font-size: 1.6rem;
+            box-shadow: 6px 6px 0px var(--dark-ink);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="landing-page">
+        <div class="spacer"></div> 
+        <div class="options-grid">
+            <button class="option-btn" onclick="openKiosk()">
+                <span class="btn-en">Dine-In</span><span class="btn-zh">內用</span>
+            </button>
+            <button class="option-btn" onclick="openKiosk()">
+                <span class="btn-en">Take-Out</span><span class="btn-zh">外帶</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="order-page">
+        <main>
+            <div class="kiosk-header">
+                <h1 style="margin:0; color:var(--wendys-red); font-size: 2.5rem;">ORDER HERE</h1>
+                <div style="font-size:1.2rem;">請在此點餐</div>
+            </div>
+            <div class="menu-grid" id="menu-container"></div>
+        </main>
+
+        <aside class="sidebar">
+            <h2 style="text-align:center; font-size: 2rem;">Order Slip 訂單單</h2>
+            <div class="slip-row" style="color:#8B2626;">
+                <span>food/drink</span><span>qty</span><span>amount</span>
+            </div>
+            <div id="slip-items" style="flex:1; overflow-y:auto;"></div>
+            <div class="total-box">
+                <span>Total</span><span id="total-price">$0</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+                <button class="option-btn" style="background:var(--wendys-blue); color:white; padding:15px;" onclick="showPay()">confirm</button>
+                <button class="option-btn" style="background:var(--wendys-red); color:white; padding:15px;" onclick="location.reload()">cancel</button>
+            </div>
+        </aside>
+    </div>
+
+    <div id="payment-screen">
+        <h1 style="font-size:3.5rem;">processing payment...</h1>
+        <button class="pay-btn" onclick="location.reload()">card</button>
+        <button class="pay-btn" style="background:#00B900; color:white;" onclick="location.reload()">line pay</button>
+        <button class="pay-btn" onclick="location.reload()">cash (pay at counter)</button>
+    </div>
+
+    <script>
+        const menuItems = [
+            { name: 'hamburger', price: 90, img: 'hamburger.jpg' },
+            { name: 'hot dog', price: 70, img: 'hot dog.jpg' },
+            { name: 'fries', price: 40, img: 'fries.jpg' },
+            { name: 'chicken', price: 65, img: 'chicken.jpg' },
+            { name: 'juice', price: 20, img: 'juice.jpg' },
+            { name: 'milk', price: 25, img: 'milk.jpg' },
+            { name: 'water', price: 10, img: 'water.jpg' },
+            { name: 'ice cream', price: 30, img: 'ice cream.jpg' }
+        ];
+
+        let cart = {};
+        let total = 0;
+
+        function playPop() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.start(); osc.stop(ctx.currentTime + 0.1);
+        }
+
+        function openKiosk() {
+            playPop();
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('order-page').style.display = 'flex';
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            if (container.children.length > 0) return;
+            menuItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'menu-card';
+                card.onclick = () => addToCart(item);
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150?text=${item.name}'">
+                    <h3>${item.name}</h3>
+                    <div class="price-tag">$${item.price}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addToCart(item) {
+            playPop();
+            if (!cart[item.name]) cart[item.name] = { qty: 0, price: item.price };
+            cart[item.name].qty++;
+            total += item.price;
+            updateUI();
+        }
+
+        function updateUI() {
+            const slip = document.getElementById('slip-items');
+            slip.innerHTML = '';
+            for (let id in cart) {
+                const row = document.createElement('div');
+                row.className = 'slip-row';
+                row.innerHTML = `<span>${id}</span><span>${cart[id].qty}</span><span>${cart[id].qty * cart[id].price}</span>`;
+                slip.appendChild(row);
+            }
+            document.getElementById('total-price').innerText = `$${total}`;
+        }
+
+        function showPay() {
+            if (total === 0) return;
+            playPop();
+            document.getElementById('payment-screen').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
