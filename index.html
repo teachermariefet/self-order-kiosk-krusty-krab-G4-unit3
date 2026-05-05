@@ -14,10 +14,7 @@
             --white: #FFFFFF;
         }
 
-        /* Base font for everything */
-        * {
-            font-family: "Comic Sans MS", "Comic Sans", cursive;
-        }
+        * { font-family: "Comic Sans MS", "Comic Sans", cursive; }
 
         body {
             margin: 0;
@@ -28,7 +25,7 @@
             user-select: none;
         }
 
-        /* --- LANDING PAGE WITH CUSTOM BACKGROUND --- */
+        /* --- LANDING PAGE --- */
         #landing-page {
             position: fixed;
             width: 100%;
@@ -43,9 +40,37 @@
             z-index: 10;
         }
 
-        .spacer {
-            height: 180px; 
+        /* Subtle Random Picker Display */
+        .picker-container {
+            position: absolute;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 3px solid var(--dark-ink);
+            text-align: center;
+            min-width: 300px;
         }
+
+        .picker-title { font-size: 0.9rem; color: #666; margin-bottom: 5px; }
+        .picked-names { font-size: 1.5rem; font-weight: bold; color: var(--wendys-red); }
+
+        /* Edit Names Button (Bottom Right) */
+        .edit-names-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--white);
+            border: 3px solid var(--dark-ink);
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        .edit-names-btn:hover { opacity: 1; background: var(--bg-cream); }
+
+        .spacer { height: 180px; }
 
         .options-grid { 
             display: flex; 
@@ -63,26 +88,14 @@
             transition: 0.1s;
         }
 
-        .option-btn:hover {
-            background-color: var(--wendys-yellow);
-        }
-
-        .option-btn:active { 
-            transform: translate(6px, 6px); 
-            box-shadow: 0px 0px 0px var(--dark-ink); 
-        }
+        .option-btn:hover { background-color: var(--wendys-yellow); }
+        .option-btn:active { transform: translate(6px, 6px); box-shadow: 0px 0px 0px var(--dark-ink); }
 
         .btn-en { font-size: 2.2rem; font-weight: bold; display: block; }
         .btn-zh { font-size: 1.1rem; color: #555; }
 
         /* --- ORDER PAGE STYLES --- */
-        #order-page {
-            display: none; 
-            width: 100%;
-            height: 100%;
-            background-color: #CBF3F0;
-        }
-
+        #order-page { display: none; width: 100%; height: 100%; background-color: #CBF3F0; }
         main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
 
         .kiosk-header {
@@ -172,6 +185,12 @@
 <body>
 
     <div id="landing-page">
+        <!-- Subtle Name Picker Display -->
+        <div class="picker-container" onclick="pickStudents()">
+            <div class="picker-title">Role Play Pair (Click to Pick)</div>
+            <div class="picked-names" id="display-picked">Who's next?</div>
+        </div>
+
         <div class="spacer"></div> 
         <div class="options-grid">
             <button class="option-btn" onclick="openKiosk()">
@@ -181,6 +200,8 @@
                 <span class="btn-en">Take-Out</span><span class="btn-zh">外帶</span>
             </button>
         </div>
+
+        <button class="edit-names-btn" onclick="editNames()">Edit Students</button>
     </div>
 
     <div id="order-page">
@@ -216,6 +237,32 @@
     </div>
 
     <script>
+        // --- STUDENT NAME LOGIC ---
+        let students = ["Student 1", "Student 2", "Student 3", "Student 4"];
+
+        function editNames() {
+            const input = prompt("Enter student names separated by commas:", students.join(", "));
+            if (input !== null) {
+                students = input.split(",").map(name => name.trim()).filter(name => name !== "");
+                document.getElementById('display-picked').innerText = "Names Updated!";
+            }
+        }
+
+        function pickStudents() {
+            playPop();
+            if (students.length < 2) {
+                document.getElementById('display-picked').innerText = "Need more names!";
+                return;
+            }
+            
+            // Shuffle and pick 2
+            const shuffled = [...students].sort(() => 0.5 - Math.random());
+            const picked = shuffled.slice(0, 2);
+            
+            document.getElementById('display-picked').innerText = `${picked[0]} & ${picked[1]}`;
+        }
+
+        // --- MENU LOGIC ---
         const menuItems = [
             { name: 'hamburger', price: 90, img: 'hamburger.jpg' },
             { name: 'hot dog', price: 70, img: 'hot dog.jpg' },
@@ -230,7 +277,6 @@
         let cart = {};
         let total = 0;
 
-        // --- SOUND EFFECTS ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playPop() {
@@ -238,37 +284,30 @@
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
             osc.frequency.setValueAtTime(600, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-            
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            
             osc.start();
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
         function playChime() {
-            const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+            const notes = [523.25, 659.25, 783.99];
             notes.forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * 0.1));
-                
                 gain.gain.setValueAtTime(0.05, audioCtx.currentTime + (i * 0.1));
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.1) + 0.3);
-                
                 osc.start(audioCtx.currentTime + (i * 0.1));
                 osc.stop(audioCtx.currentTime + (i * 0.1) + 0.3);
             });
         }
 
-        // --- LOGIC ---
         function openKiosk() {
             playPop();
             document.getElementById('landing-page').style.display = 'none';
